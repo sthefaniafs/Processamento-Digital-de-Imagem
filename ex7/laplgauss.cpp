@@ -1,130 +1,116 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
-int main(int, char **)
-{
-    cv::Mat image;
+void printmask(cv::Mat &m) {
+  for (int i = 0; i < m.size().height; i++) {
+    for (int j = 0; j < m.size().width; j++) {
+      std::cout << m.at<float>(i, j) << ",";
+    }
+    std::cout << "\n";
+  }
+}
 
-    //image = cv::imread("imgsalepimenta.png", cv::IMREAD_GRAYSCALE);
-    image = cv::imread("mulher.png", cv::IMREAD_GRAYSCALE);
+int main(int, char **) {
+  cv::VideoCapture cap;  // open the default camera
+  float media[] = {0.1111, 0.1111, 0.1111, 0.1111, 0.1111,
+                   0.1111, 0.1111, 0.1111, 0.1111};
+  float gauss[] = {0.0625, 0.125,  0.0625, 0.125, 0.25,
+                   0.125,  0.0625, 0.125,  0.0625};
+  float horizontal[] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
+  float vertical[] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
+  float laplacian[] = {0, -1, 0, -1, 4, -1, 0, -1, 0};
+  float boost[] = {0, -1, 0, -1, 5.2, -1, 0, -1, 0};
+  float laplgauss [] ={0,0,-1,0,0,0,-1,-2,-1,0,-1,-2,16,-2,-1,
+                      0,-1,-2,-1,0,0,0,-1,0,0};
 
+  cv::Mat frame, framegray, frame32f, frameFiltered;
+  cv::Mat mask(3, 3, CV_32F), mask_scale;
+  cv::Mat result;
+  double width, height;
+  int absolut;
+  char key;
 
-    if (!image.data)
-        std::cout << "nao abriu mulher.png" << std::endl;
+  cap.open("paisagem.mp4");
 
-    cv::imshow("Original com ruido", image);
+  if (!cap.isOpened())  // check if we succeeded
+    return -1;
 
-    float media[] = {0.1111, 0.1111, 0.1111, 0.1111, 0.1111,
-                     0.1111, 0.1111, 0.1111, 0.1111};
-    float gauss[] = {0.0625, 0.125, 0.0625, 0.125, 0.25,
-                     0.125, 0.0625, 0.125, 0.0625};
-    float vertical [] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};     // Máscara de Sobel vertical
-    float horizontal [] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};   // Máscara de Sobel horizontal
-    float mais45 [] = {0, 1, 2, -1, 0, 1, -2, -1, 0};       // Máscara de Sobel +45°
-    float menos45 [] = {-2, -1, 0, -1, 0, 1, 0, 1, 2};      // Máscara de Sobel -45°
-    float laplacian[] = {0, -1, 0, -1, 4, -1, 0, -1, 0};
-    float boost[] = {0, -1, 0, -1, 5.2, -1, 0, -1, 0};      // Máscara de nitidez
+  cap.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+  cap.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+  width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
+  height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
+  std::cout << "largura=" << width << "\n";
+  std::cout << "altura =" << height << "\n";
+  std::cout << "fps    =" << cap.get(cv::CAP_PROP_FPS) << "\n";
+  std::cout << "format =" << cap.get(cv::CAP_PROP_FORMAT) << "\n";
+  std::cout << "\nPressione as teclas para ativar o filtro: \n"
+          "a - calcular módulo\n"
+          "m - média\n"
+          "g - gauss\n"
+          "v - vertical\n"
+          "h - horizontal\n"
+          "l - laplaciano\n"
+          "x - laplaciano do gaussiano\n"
+          "esc - encerrar\n";
 
-    cv::Mat image32f, imageFiltered, secondFilteredimage;
-    cv::Mat mask(3, 3, CV_32F);
-    cv::Mat result;
-    int absolut, laplgauss = 0;
-    char key;
+  cv::namedWindow("filtroespacial", cv::WINDOW_NORMAL);
+  cv::namedWindow("original", cv::WINDOW_NORMAL);
 
-    mask = cv::Mat(3, 3, CV_32F, media);
-    absolut = 1; // calcs abs of the image
+  mask = cv::Mat(3, 3, CV_32F, media);
+  absolut = 1;  // calcs abs of the image
 
-    // Loop para o programa rodar até que ESC seja pressionada
-    while(key != 27){
+  for (;;) {
+    cap >> frame;  // get a new frame from camera
+    cv::cvtColor(frame, framegray, cv::COLOR_BGR2GRAY);
+    cv::flip(framegray, framegray, 1);
+    cv::imshow("original", framegray);
+    framegray.convertTo(frame32f, CV_32F);
+    cv::filter2D(frame32f, frameFiltered, frame32f.depth(), mask,
+                 cv::Point(1, 1), 0);
+    if (absolut) {
+      frameFiltered = cv::abs(frameFiltered);
+    }
 
-    key = (char)cv::waitKey();
-    switch (key)
-    {
-    case 'a':
+    frameFiltered.convertTo(result, CV_8U);
+
+    cv::imshow("filtroespacial", result);
+
+    key = (char)cv::waitKey(10);
+    if (key == 27) break;  // esc pressed!
+    switch (key) {
+      case 'a':
         absolut = !absolut;
-        laplgauss = 0;
         break;
-    case 'm':
+      case 'm':
         mask = cv::Mat(3, 3, CV_32F, media);
-        laplgauss = 0;
+        printmask(mask);
         break;
-    case 'g':
+      case 'g':
         mask = cv::Mat(3, 3, CV_32F, gauss);
-        laplgauss = 0;
+        printmask(mask);
         break;
-    case 'h':
+      case 'h':
         mask = cv::Mat(3, 3, CV_32F, horizontal);
-        laplgauss = 0;
+        printmask(mask);
         break;
-    case 'v':
+      case 'v':
         mask = cv::Mat(3, 3, CV_32F, vertical);
-        laplgauss = 0;
+        printmask(mask);
         break;
-    case 'j':
-        mask = cv::Mat(3, 3, CV_32F, mais45);
-        laplgauss = 0;
-        break;
-    case 'k':
-        mask = cv::Mat(3, 3, CV_32F, menos45);
-        laplgauss = 0;
-        break;
-    case 'l':
+      case 'l':
         mask = cv::Mat(3, 3, CV_32F, laplacian);
-        laplgauss = 0;
+        printmask(mask);
         break;
-    case 'b':
+        case 'x':
+        mask = cv::Mat(5, 5, CV_32F, laplgauss);
+        printmask(mask);
+        break;
+      case 'b':
         mask = cv::Mat(3, 3, CV_32F, boost);
-        laplgauss = 0;
         break;
-    case 'p':
-        // Opção para o filtro LoG (Laplaciano do Gaussiano)
-        laplgauss = 1;
-        break;
-    default:
+      default:
         break;
     }
-
-    // Caso a seleção seja Laplaciano do Gaussiano
-    if (laplgauss == 1)
-    {
-        image.convertTo(image32f, CV_32F);
-
-        // Aplicando o filtro gaussiano
-        mask = cv::Mat(3, 3, CV_32F, gauss);
-        cv::filter2D(image32f, imageFiltered, image32f.depth(),
-                     mask,
-                     cv::Point(1, 1), 0);
-        // Aplicando o filtro laplaciano
-        mask = cv::Mat(3, 3, CV_32F, laplacian);
-        cv::filter2D(imageFiltered, secondFilteredimage, image32f.depth(),
-                     mask,
-                     cv::Point(1, 1), 0);
-
-        if (absolut)
-        {
-            secondFilteredimage = cv::abs(secondFilteredimage);
-        }
-
-        secondFilteredimage.convertTo(result, CV_8U);
-    }
-    else if (laplgauss == 0)
-    {
-        image.convertTo(image32f, CV_32F);
-
-        cv::filter2D(image32f, imageFiltered, image32f.depth(),
-                     mask,
-                     cv::Point(1, 1), 0);
-        if (absolut)
-        {
-            imageFiltered = cv::abs(imageFiltered);
-        }
-
-        imageFiltered.convertTo(result, CV_8U);
-    }
-
-    cv::namedWindow("ImagemFiltrada", cv::WINDOW_NORMAL);
-    cv::imshow("Filtrado", result);
-    }
-    cv::waitKey();
-    return 0;
+  }
+  return 0;
 }
