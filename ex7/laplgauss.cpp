@@ -47,9 +47,10 @@ int main(int, char **) {
           "a - calcular módulo\n"
           "m - média\n"
           "g - gauss\n"
-          "v - vertical\n"
           "h - horizontal\n"
+          "v - vertical\n"
           "l - laplaciano\n"
+          "b - boost\n"
           "x - laplaciano do gaussiano\n"
           "esc - encerrar\n";
 
@@ -80,33 +81,41 @@ int main(int, char **) {
     switch (key) {
       case 'a':
         absolut = !absolut;
+        std::cout << "\nBotão a pressionado \n";
         break;
       case 'm':
         mask = cv::Mat(3, 3, CV_32F, media);
+        std::cout << "\nBotão m pressionado \n";
         printmask(mask);
         break;
       case 'g':
         mask = cv::Mat(3, 3, CV_32F, gauss);
+        std::cout << "\nBotão g pressionado \n";
         printmask(mask);
         break;
       case 'h':
         mask = cv::Mat(3, 3, CV_32F, horizontal);
+        std::cout << "\nBotão h pressionado \n";
         printmask(mask);
         break;
       case 'v':
         mask = cv::Mat(3, 3, CV_32F, vertical);
+        std::cout << "\nBotão v pressionado \n";
         printmask(mask);
         break;
       case 'l':
         mask = cv::Mat(3, 3, CV_32F, laplacian);
-        printmask(mask);
-        break;
-        case 'x':
-        mask = cv::Mat(5, 5, CV_32F, laplgauss);
+        std::cout << "\nBotão l pressionado \n";
         printmask(mask);
         break;
       case 'b':
         mask = cv::Mat(3, 3, CV_32F, boost);
+        std::cout << "\nBotão b pressionado \n";
+        break;
+        case 'x':
+        mask = cv::Mat(5, 5, CV_32F, laplgauss);
+        std::cout << "\nBotão x pressionado \n";
+        printmask(mask);
         break;
       default:
         break;
