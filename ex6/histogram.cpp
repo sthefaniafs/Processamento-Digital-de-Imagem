@@ -14,10 +14,10 @@ int main(int argc, char** argv){
   bool acummulate = false;
   int key;
 
-	cap.open(2);
+	cap.open("paisagem.mp4");
   
   if(!cap.isOpened()){
-    std::cout << "cameras indisponiveis";
+    std::cout << "video indisponível";
     return -1;
   }
   
@@ -72,7 +72,7 @@ int main(int argc, char** argv){
     histImgR.copyTo(image(cv::Rect(0, 0       ,nbins, histh)));
     histImgG.copyTo(image(cv::Rect(0, histh   ,nbins, histh)));
     histImgB.copyTo(image(cv::Rect(0, 2*histh ,nbins, histh)));
-    cv::imshow("image", image);
+    cv::imshow("paisagem", image);
     key = cv::waitKey(30);
     if(key == 27) break;
   }
