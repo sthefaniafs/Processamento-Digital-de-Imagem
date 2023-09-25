@@ -58,13 +58,16 @@ int main(int argc, char** argv){
     for(int i=0; i<nbins; i++){
         cv::line(hist1,
                cv::Point(i, histh),
-               cv::Point(i, histh-cvRound(hist.at<float>(i))),
-               cv::Scalar(0, 0, 255), 1, 8, 0);
+               cv::Point(i, histh-cvRound(historiginal.at<float>(i))),
+               cv::Scalar(255, 255, 255), 1, 8, 0);
         cv::line(hist2,
                cv::Point(i, histh),
                cv::Point(i, histh-cvRound(hist.at<float>(i))),
-               cv::Scalar(0, 0, 255), 1, 8, 0);
+               cv::Scalar(255, 255, 255), 1, 8, 0);
     }
+
+    hist1.copyTo(image(cv::Rect(0,0,nbins, histh)));
+    hist2.copyTo(framequalizado(cv::Rect(0,0,nbins, histh)));
     cv::imshow("Original", image);
     cv::imshow("Equalizado", framequalizado);
     key = cv::waitKey(30);
