@@ -35,33 +35,35 @@ int main(int argc, char** argv){
 
     cap >> image;
 
+  /*o slit é usado para separar somente a cor de interesse do programa,
+  que no caso é vermelho*/
   cv::split(image, planes);
 
-    //calculando histograma imagem do canal vermelho
+  /*calculando histograma da imagem considerando a cor vermelha*/
   cv::calcHist(&planes[0], 1, 0, cv::Mat(), histatual, 1,
            &nbins, &histrange,
            uniform, acummulate);
 
-  //normalizando
+  /*normalizando histograma*/ 
   cv::normalize(histatual, histatual, 0, histImgR.rows, cv::NORM_MINMAX, -1, cv::Mat());
 
   while(1){
-
+    /*o histograma anterior recebe o atual*/
     histatual.copyTo(histanterior);
 
     cap >> image;
 
     cv::split(image,planes);
 
-    /*Calcular o histograma das imagem original*/
     cv::calcHist(&planes[0], 1, 0, cv::Mat(), histatual, 1, &nbins, &histrange, uniform, acummulate);
     
-    /*normalizar os histogramas*/
     cv::normalize(histatual, histatual, 0, histImgR.rows, cv::NORM_MINMAX, -1, cv::Mat());
 
     histImgR.setTo(cv::Scalar(0));
 
     double comp = cv::compareHist(histatual, histanterior, cv::HISTCMP_CORREL);
+    
+    /*definição do valor que define o movimento*/
     if(comp < 0.99){
       std::cout<< "Movimento detectado\n";
     }
