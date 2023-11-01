@@ -8,41 +8,24 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
-
-#define STEP 5
-#define JITTER 3
-#define RAIO 3
-
+int STEP = 5;
+int JITTER = 3;
+int RAIO = 3;
 int top_slider = 10;
 int top_slider_max = 200;
 
 char TrackbarName[50];
 
-cv::Mat image, border, frame, points;
+cv::Mat image, border, points;
 
-void on_trackbar_canny(int, void*){
-  cv::Canny(image, border, top_slider, 3*top_slider);
-  cv::imshow("Canny", border);
-}
+void pointillism (){
 
-int main(int argc, char**argv){
     std::vector<int> yrange;
     std::vector<int> xrange;
-    
 
     int width, height, gray;
     int x, y;
 
-    image= cv::imread(argv[1], cv::IMREAD_GRAYSCALE);
-
-    std::srand(std::time(0));
-
-    if (image.empty()) {
-        std::cout << "Could not open or find the image" << std::endl;
-        return -1;
-    }
-
-    //pointilhismo 
     width = image.cols;
     height = image.rows;
 
@@ -67,18 +50,63 @@ int main(int argc, char**argv){
     for (auto i : xrange) {
         std::random_shuffle(yrange.begin(), yrange.end());
         for (auto j : yrange) {
-        x = i + std::rand() % (2 * JITTER) - JITTER + 1;
-        y = j + std::rand() % (2 * JITTER) - JITTER + 1;
-        gray = image.at<uchar>(x, y);
-        cv::circle(points, cv::Point(y, x), RAIO, CV_RGB(gray, gray, gray),
-                    cv::FILLED, cv::LINE_AA);
+            if (border.at<uchar>(i, j) == 255){
+                x = i+rand()%(2*JITTER)-JITTER+1;
+                y = j+rand()%(2*JITTER)-JITTER+1;
+                gray = image.at<uchar>(x,y);
+                circle(points, cv::Point(y, x), RAIO, CV_RGB(gray, gray, gray),
+                cv::FILLED, cv::LINE_AA);
+            }
+            else{
+                x = i+rand()%(2*JITTER)-JITTER+1;
+                y = j+rand()%(2*JITTER)-JITTER+1;
+                gray = image.at<uchar>(x,y);
+                circle(points, cv::Point(y, x), RAIO, CV_RGB(gray, gray, gray),
+                cv::FILLED, cv::LINE_AA);
+            }
         }
     }
-    
-    //barra interativa
+
+    cv::imshow("CannyPoints", points);
+}
+
+void on_trackbar_canny(int, void*){
+    cv::Canny(image, border, top_slider, 3*top_slider);
+    pointillism();
+    cv::namedWindow("Canny",1);
+    cv::imshow("Canny", border);
+}
+
+void on_trackbar_canny_points(int,void*){
+    pointillism();
+}
+
+
+int main(int argc, char** argv) {
+
+    image = cv::imread(argv[1], cv::IMREAD_GRAYSCALE);
+
+    std::srand(std::time(0));
+
+    if (image.empty()) {
+        std::cout << "Could not open or find the image" << std::endl;
+        return -1;
+    }
+
+
     sprintf( TrackbarName, "Threshold inferior", top_slider_max );
 
-    cv::namedWindow("CannyPoints",1);
+    cv::namedWindow("Canny",0);
+
+    cv::createTrackbar("Threshold inferior", "CannyPoints",
+                    &top_slider,
+                    top_slider_max,
+                    on_trackbar_canny );
+
+    on_trackbar_canny(top_slider, 0);
+
+    sprintf( TrackbarName, "Threshold inferior", top_slider_max );
+    
     cv::createTrackbar( TrackbarName, "Canny",
                     &top_slider,
                     top_slider_max,
@@ -86,7 +114,30 @@ int main(int argc, char**argv){
 
     on_trackbar_canny(top_slider, 0 );
 
+    /*cv::createTrackbar("STEP", "CannyPoints",
+                    &STEP,
+                    100,
+                    on_trackbar_canny_points);
+
+    on_trackbar_canny_points(STEP,0);
+
+    cv::createTrackbar("JITTER", "CannyPoints",
+                    &JITTER,
+                    100,
+                    on_trackbar_canny_points);
+
+    on_trackbar_canny_points(JITTER,0);
+
+    cv::createTrackbar("RAIO", "CannyPoints",
+                    &RAIO,
+                    100,
+                    on_trackbar_canny_points);
+
+    on_trackbar_canny_points(RAIO,0);*/
+
     cv::waitKey();
-    cv::imwrite("cannypoints.png", border);
-    return 0;
+    cv::imwrite("cannyborders.png", border);
+
+    return 1;
+
 }
