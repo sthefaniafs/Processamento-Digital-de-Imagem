@@ -22,8 +22,9 @@ void pointillism (){
 
     std::vector<int> yrange;
     std::vector<int> xrange;
+    cv::Vec3b color;
 
-    int width, height, gray;
+    int width, height;
     int x, y;
 
     width = image.cols;
@@ -43,48 +44,53 @@ void pointillism (){
         yrange[i] = yrange[i] * STEP + STEP / 2;
     }
 
-    points = cv::Mat(height, width, CV_8U, cv::Scalar(255));
+    points = cv::Mat(height, width, CV_8UC3, cv::Scalar(255, 255, 255)); // Imagem colorida
 
     std::random_shuffle(xrange.begin(), xrange.end());
 
     for (auto i : xrange) {
+
         std::random_shuffle(yrange.begin(), yrange.end());
         for (auto j : yrange) {
+
             if (border.at<uchar>(i, j) == 255){
-                x = i+rand()%(2*JITTER)-JITTER+1;
-                y = j+rand()%(2*JITTER)-JITTER+1;
-                gray = image.at<uchar>(x,y);
-                circle(points, cv::Point(y, x), RAIO, CV_RGB(gray, gray, gray),
+                x = i+ std::rand()%(2*JITTER)-JITTER+1;
+                y = j+ std::rand()%(2*JITTER)-JITTER+1;
+                color = image.at<cv::Vec3b>(x,y);
+                circle(points, cv::Point(y, x), RAIO, cv::Scalar(color[0], color[1], color[2]),
                 cv::FILLED, cv::LINE_AA);
             }
             else{
-                x = i+rand()%(2*JITTER)-JITTER+1;
-                y = j+rand()%(2*JITTER)-JITTER+1;
-                gray = image.at<uchar>(x,y);
-                circle(points, cv::Point(y, x), RAIO, CV_RGB(gray, gray, gray),
+                x = i+ std::rand()%(2*JITTER)-JITTER+1;
+                y = j+ std::rand()%(2*JITTER)-JITTER+1;
+                color = image.at<cv::Vec3b>(x,y);
+                circle(points, cv::Point(y, x), 3, cv::Scalar(color[0], color[1], color[2]),
                 cv::FILLED, cv::LINE_AA);
             }
         }
     }
 
-    cv::imshow("CannyPoints", points);
 }
 
 void on_trackbar_canny(int, void*){
     cv::Canny(image, border, top_slider, 3*top_slider);
-    pointillism();
-    cv::namedWindow("Canny",1);
     cv::imshow("Canny", border);
 }
 
 void on_trackbar_canny_points(int,void*){
     pointillism();
-}
+    cv::imshow("Pontilhismo", points);
 
+}
 
 int main(int argc, char** argv) {
 
-    image = cv::imread(argv[1], cv::IMREAD_GRAYSCALE);
+    image = cv::imread(argv[1],cv::IMREAD_COLOR);
+    //int resize_scaling = 50;
+    //float newWidth = image.size().width * resize_scaling/100;
+    //float newHeight = image.size().height * resize_scaling/100;
+   
+    //cv::resize(image, image, cv::Size(newWidth, newHeight), cv::INTER_LINEAR);
 
     std::srand(std::time(0));
 
@@ -96,48 +102,29 @@ int main(int argc, char** argv) {
 
     sprintf( TrackbarName, "Threshold inferior", top_slider_max );
 
-    cv::namedWindow("Canny",0);
+    cv::namedWindow("Canny", 1);
 
-    cv::createTrackbar("Threshold inferior", "CannyPoints",
+    cv::createTrackbar(TrackbarName, "Canny",
                     &top_slider,
                     top_slider_max,
                     on_trackbar_canny );
 
     on_trackbar_canny(top_slider, 0);
 
-    sprintf( TrackbarName, "Threshold inferior", top_slider_max );
-    
-    cv::createTrackbar( TrackbarName, "Canny",
-                    &top_slider,
-                    top_slider_max,
-                    on_trackbar_canny );
+    // Pontilhismo
+    sprintf(TrackbarName, "Raio");
 
-    on_trackbar_canny(top_slider, 0 );
-
-    /*cv::createTrackbar("STEP", "CannyPoints",
-                    &STEP,
-                    100,
-                    on_trackbar_canny_points);
-
-    on_trackbar_canny_points(STEP,0);
-
-    cv::createTrackbar("JITTER", "CannyPoints",
-                    &JITTER,
-                    100,
-                    on_trackbar_canny_points);
-
-    on_trackbar_canny_points(JITTER,0);
-
-    cv::createTrackbar("RAIO", "CannyPoints",
-                    &RAIO,
-                    100,
-                    on_trackbar_canny_points);
-
-    on_trackbar_canny_points(RAIO,0);*/
+    cv::namedWindow("Pontilhismo", 1);
+    cv::createTrackbar(TrackbarName, "Pontilhismo",
+                       &RAIO,
+                       10,
+                       on_trackbar_canny_points);
+    on_trackbar_canny_points(RAIO, 0);
 
     cv::waitKey();
-    cv::imwrite("cannyborders.png", border);
-
+    //cv::imwrite("borda.png", border);
+    //cv::imwrite("pointilhismo.png", points);
+    
     return 1;
 
 }
