@@ -40,7 +40,7 @@ void makeFilter(const cv::Mat &image, cv::Mat &filter){
   /* Aumenta-se o contraste da imagem ...*/
   float YH = 1.5; /*e a refletância é aumentada (γH > 1)*/
   float YL = 0.25; /*se a iluminação é diminuída (0 < γL < 1)*/
-  float c = 1.0; /*filtro passa-alta idela*/
+  float c = 1.0; 
 
   /* Para fazer o filtro homomórfico considera-se a seguinte equação:
      H(u,v) = (γH − γL)(1 − e^(− c(D²(u,v)/D0²))) + γL
