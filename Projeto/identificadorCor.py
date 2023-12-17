@@ -4,7 +4,7 @@ import numpy as np
 retangulo = False
 PosicaoROI = []
 
-#função para escolher região em que a cor será detectada
+# função para escolher região em que a cor será detectada
 def desenhar_retangulo(event, x, y, flags, param):
     global retangulo, PosicaoROI
 
@@ -18,16 +18,18 @@ def desenhar_retangulo(event, x, y, flags, param):
         cv2.rectangle(frame, PosicaoROI[0], PosicaoROI[1], (0, 255, 0), 2)
         cv2.imshow('Webcam', frame)
 
-#função para identificar a cor na região escolhida
+# função para identificar a cor na região escolhida
 def identificar_cor(roi):
     roi_hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
 
-    #calcule a média da cor na região HSV
-    #a cor será um valor médio da região identificada
+    # calcule a média da cor na região HSV
+    # a cor será um valor médio da região identificada
+
     media_cor = np.mean(roi_hsv, axis=(0, 1))
+    desvio_cor = np.std(roi_hsv, axis=(0, 1))
 
-    valorH, valorS, valorV = media_cor[0], media_cor[1], media_cor[2]
-
+    valorH, valorS, valorV = media_cor[0] - desvio_cor[0], media_cor[1] - desvio_cor[1], media_cor[2] - desvio_cor[2]
+ 
     if valorH < 11:
         if valorV < 50:
             return "Preto"
@@ -105,7 +107,8 @@ else:
             cor = identificar_cor(roi)
 
             # escreve a cor identificada
-            cv2.putText(frame, f'Cor: {cor}', (20, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            cv2.rectangle(frame, PosicaoROI[0], PosicaoROI[1], (0, 255, 0), 2)
+            cv2.putText(frame, f'Cor: {cor}', (20, 60), 0, 0.7, (255, 255, 255), 2)
 
             # mostra a região de interesse de perto
             cv2.namedWindow('ROI')
@@ -119,6 +122,6 @@ else:
         if key == 27: # se apertar esc fecha
             break
 
-# Libere os recursos quando terminar
+# liberar os recursos quando terminar
 cap.release()
 cv2.destroyAllWindows()
