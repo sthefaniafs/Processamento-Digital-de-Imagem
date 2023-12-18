@@ -88,7 +88,7 @@ def identificar_cor(roi):
             return "Vermelho"
 
 #iniciar câmera
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 #configura o callback do mouse
 cv2.namedWindow('Webcam')
